@@ -7,9 +7,10 @@ import AnnouncementSection from "@/components/sections/AnnouncementSection";
 import EventsSection from "@/components/sections/EventsSection";
 import Footer from "@/components/sections/Footer";
 import GallerySection from "@/components/sections/GallerySection";
-import HeroSection from "@/components/sections/HeroSection";
+import HeroSection from "../sections/HeroSection";
 import Navbar from "@/components/sections/Navbar";
 import Loader from "@/components/site/Loader";
+import UpcomingEventsPopup from "@/components/site/UpcomingEventsPopup";
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
@@ -36,6 +37,7 @@ export default function HomePage() {
         </div>
 
         <Navbar />
+        <UpcomingEventsPopup />
         <div className="relative z-10">
           <HeroSection />
           <AboutSection />

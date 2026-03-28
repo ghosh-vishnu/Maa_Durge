@@ -27,7 +27,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, ease: "easeOut" }}
-          className="hero-content-shell max-w-3xl"
+          className="hero-content-shell max-w-2xl"
         >
           <p className="hero-kicker mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
             <Sparkles size={14} />
@@ -38,8 +38,8 @@ export default function HeroSection() {
             Orai Jankipur Radhi Kayasth Samiti
           </h1>
 
-          <p className="hero-subtitle mt-6 max-w-2xl text-lg leading-8 text-white/90 sm:text-xl">
-            Serving Culture, Community & Devotion
+          <p className="hero-subtitle mt-6 max-w-xl text-base leading-7 text-white/92 sm:text-lg sm:leading-8">
+            Serving culture, community, and devotion through spiritual gatherings, seva initiatives, and shared heritage.
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
