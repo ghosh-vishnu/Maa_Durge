@@ -2,47 +2,52 @@
 
 import { motion } from "framer-motion";
 import { HeartHandshake, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { defaultManagedHero, readHeroFromStorage } from "@/lib/siteContent";
 
 export default function HeroSection() {
+  const [hero, setHero] = useState(defaultManagedHero);
+
+  useEffect(() => {
+    setHero(readHeroFromStorage());
+  }, []);
+
   return (
     <section id="home" className="relative flex min-h-screen items-center overflow-hidden pt-24">
       <div
-        className="absolute inset-0"
+        className="hero-media"
         style={{
-          backgroundImage:
-            "linear-gradient(120deg, rgba(37, 32, 27, 0.75), rgba(37, 32, 27, 0.28)), url('https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1920&q=80')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundImage: `url('${hero.image}')`,
         }}
       />
-      <div className="hero-glow" />
+      <div className="hero-vignette" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, ease: "easeOut" }}
-          className="max-w-3xl"
+          className="hero-content-shell max-w-3xl"
         >
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+          <p className="hero-kicker mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
             <Sparkles size={14} />
             Heritage • Seva • Bhakti
           </p>
 
-          <h1 className="font-heading text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="hero-title font-heading text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
             Orai Jankipur Radhi Kayasth Samiti
           </h1>
 
-          <p className="mt-5 text-lg leading-8 text-white/85 sm:text-xl">
+          <p className="hero-subtitle mt-6 max-w-2xl text-lg leading-8 text-white/90 sm:text-xl">
             Serving Culture, Community & Devotion
           </p>
 
-          <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-            <a href="#contact" className="btn-primary">
+          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+            <a href="#contact" className="hero-btn-primary">
               <HeartHandshake size={18} />
               Join Us
             </a>
-            <a href="#donate" className="btn-ghost">
+            <a href="#donate" className="hero-btn-ghost">
               Donate
             </a>
           </div>

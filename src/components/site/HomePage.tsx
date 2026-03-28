@@ -27,15 +27,23 @@ export default function HomePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.55, ease: "easeOut" }}
-        className="relative bg-[var(--color-bg)]"
+        className="site-shell relative bg-[var(--color-bg)]"
       >
+        <div className="site-ambient" aria-hidden="true">
+          <div className="ambient-orb ambient-orb-1" />
+          <div className="ambient-orb ambient-orb-2" />
+          <div className="ambient-orb ambient-orb-3" />
+        </div>
+
         <Navbar />
-        <HeroSection />
-        <AboutSection />
-        <EventsSection />
-        <GallerySection />
-        <AnnouncementSection />
-        <Footer />
+        <div className="relative z-10">
+          <HeroSection />
+          <AboutSection />
+          <EventsSection />
+          <GallerySection />
+          <AnnouncementSection />
+          <Footer />
+        </div>
       </motion.main>
     </>
   );

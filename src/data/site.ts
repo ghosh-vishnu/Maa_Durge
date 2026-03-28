@@ -7,6 +7,14 @@ export const navItems = [
   { label: "Contact", href: "#contact" },
 ];
 
+export const heroContent = {
+  image: "/images/hero-tajmahal.jpg",
+};
+
+export const aboutContent = {
+  image: "/images/about-samiti.jpg",
+};
+
 export const eventItems = [
   {
     title: "Maa Durga Mahotsav",

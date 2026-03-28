@@ -55,11 +55,11 @@ export default function EventsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45 }}
-            className="rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5 lg:col-span-3"
+            className="premium-panel p-6 lg:col-span-3"
           >
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Event Calendar</h3>
-              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-saffron)]/10 px-3 py-1 text-xs font-semibold text-[var(--color-saffron)]">
+              <div className="premium-chip px-3 py-1 text-xs font-semibold">
                 <CalendarRange size={14} />
                 {monthCursor.toLocaleString("en-US", { month: "long", year: "numeric" })}
               </div>
@@ -73,7 +73,7 @@ export default function EventsSection() {
                     (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1),
                   )
                 }
-                className="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
+                className="rounded-lg border border-black/10 bg-white/70 px-3 py-1.5 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
               >
                 Prev
               </button>
@@ -84,7 +84,7 @@ export default function EventsSection() {
                     (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1),
                   )
                 }
-                className="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
+                className="rounded-lg border border-black/10 bg-white/70 px-3 py-1.5 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
               >
                 Next
               </button>
@@ -110,8 +110,8 @@ export default function EventsSection() {
                     key={date}
                     className={`h-16 rounded-xl border p-2 text-left text-sm ${
                       eventCount > 0
-                        ? "border-[var(--color-saffron)]/40 bg-[var(--color-saffron)]/10"
-                        : "border-black/10 bg-white"
+                        ? "border-[var(--color-saffron)]/40 bg-[var(--color-saffron)]/12"
+                        : "border-black/10 bg-white/85"
                     }`}
                   >
                     <div className="font-semibold text-[var(--color-charcoal)]">{day}</div>
@@ -131,7 +131,7 @@ export default function EventsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.05 }}
-            className="rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5 lg:col-span-2"
+            className="premium-panel p-6 lg:col-span-2"
           >
             <h3 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Upcoming Events</h3>
             <div className="mt-4 space-y-3">
@@ -142,9 +142,9 @@ export default function EventsSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: index * 0.06 }}
-                  className="rounded-2xl border border-black/8 bg-[var(--color-cream)]/45 p-4"
+                  className="premium-card border border-black/8 bg-[var(--color-cream)]/55 p-4"
                 >
-                  <p className="inline-flex items-center gap-2 rounded-full bg-[var(--color-saffron)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--color-saffron)]">
+                  <p className="premium-chip px-2.5 py-1 text-xs font-semibold">
                     <CalendarDays size={13} />
                     {new Date(event.date).toLocaleDateString("en-GB", {
                       day: "2-digit",

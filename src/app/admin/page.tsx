@@ -4,17 +4,25 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import {
+  ABOUT_STORAGE_KEY,
+  defaultManagedAbout,
+  defaultManagedHero,
   defaultManagedEvents,
   defaultManagedGallery,
   EVENTS_STORAGE_KEY,
   GALLERY_STORAGE_KEY,
+  HERO_STORAGE_KEY,
+  ManagedAboutContent,
   ManagedEvent,
   ManagedGalleryItem,
+  ManagedHeroContent,
+  readAboutFromStorage,
   readEventsFromStorage,
   readGalleryFromStorage,
+  readHeroFromStorage,
 } from "@/lib/siteContent";
 
-type AdminTab = "events" | "gallery";
+type AdminTab = "events" | "gallery" | "hero" | "about";
 
 const emptyEventForm = {
   title: "",
@@ -27,24 +35,147 @@ const emptyGalleryForm = {
   image: "",
 };
 
+const GALLERY_MAX_IMAGE_EDGE = 1400;
+const GALLERY_IMAGE_QUALITY = 0.82;
+const HERO_MAX_IMAGE_EDGE = 2400;
+const HERO_IMAGE_QUALITY = 0.9;
+const ABOUT_MAX_IMAGE_EDGE = 2000;
+const ABOUT_IMAGE_QUALITY = 0.88;
+const GALLERY_MAX_INLINE_LENGTH = 500_000;
+const HERO_MAX_INLINE_LENGTH = 900_000;
+const ABOUT_MAX_INLINE_LENGTH = 750_000;
+
+const isInlineDataImage = (value: string) => value.startsWith("data:image/");
+
+const getImageSourceLabel = (value: string) => {
+  if (isInlineDataImage(value)) {
+    const kb = Math.round(value.length / 1024);
+    return `Uploaded file (optimized data URL, ~${kb} KB)`;
+  }
+
+  return value;
+};
+
+const optimizeImageFile = (file: File, maxEdge: number, quality: number) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Unable to read file"));
+    reader.onload = () => {
+      const src = reader.result;
+      if (typeof src !== "string") {
+        reject(new Error("Invalid file data"));
+        return;
+      }
+
+      const image = new Image();
+      image.onerror = () => reject(new Error("Unable to process image"));
+      image.onload = () => {
+        const largestEdge = Math.max(image.width, image.height);
+        const scale = largestEdge > maxEdge ? maxEdge / largestEdge : 1;
+        const width = Math.max(1, Math.round(image.width * scale));
+        const height = Math.max(1, Math.round(image.height * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Canvas is not available"));
+          return;
+        }
+
+        context.drawImage(image, 0, 0, width, height);
+
+        const webpData = canvas.toDataURL("image/webp", quality);
+        if (webpData.length > 0) {
+          resolve(webpData);
+          return;
+        }
+
+        resolve(src);
+      };
+      image.src = src;
+    };
+    reader.readAsDataURL(file);
+  });
+
 export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("events");
   const [events, setEvents] = useState<ManagedEvent[]>(readEventsFromStorage);
   const [gallery, setGallery] = useState<ManagedGalleryItem[]>(readGalleryFromStorage);
+  const [hero, setHero] = useState<ManagedHeroContent>(readHeroFromStorage);
+  const [about, setAbout] = useState<ManagedAboutContent>(readAboutFromStorage);
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
 
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [eventForm, setEventForm] = useState(emptyEventForm);
 
   const [editingGalleryId, setEditingGalleryId] = useState<string | null>(null);
   const [galleryForm, setGalleryForm] = useState(emptyGalleryForm);
+  const [heroForm, setHeroForm] = useState(() => ({ image: readHeroFromStorage().image }));
+  const [aboutForm, setAboutForm] = useState(() => ({ image: readAboutFromStorage().image }));
+
+  const persistToStorage = (key: string, payload: unknown) => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(payload));
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   useEffect(() => {
-    window.localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
+    const persisted = persistToStorage(EVENTS_STORAGE_KEY, events);
+    if (!persisted) {
+      setStorageWarning(
+        "Storage full ho gaya hai. Kuch uploaded images ko remove karke phir save karein.",
+      );
+    }
   }, [events]);
 
   useEffect(() => {
-    window.localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(gallery));
+    const persisted = persistToStorage(GALLERY_STORAGE_KEY, gallery);
+    if (persisted) {
+      setStorageWarning(null);
+      return;
+    }
+
+    // Quota fallback: keep only URL/public-path images and drop inline base64 blobs.
+    const compactGallery = gallery.filter((item) => !isInlineDataImage(item.image));
+    const compactPersisted = persistToStorage(GALLERY_STORAGE_KEY, compactGallery);
+    if (compactPersisted) {
+      if (compactGallery.length !== gallery.length) {
+        setGallery(compactGallery);
+      }
+      setStorageWarning(
+        "Storage quota exceed hone par base64 gallery images remove kar diye gaye. URL/public-path images hi persist hue hain.",
+      );
+      return;
+    }
+
+    setStorageWarning(
+      "Storage full ho gaya hai. Gallery me bade uploaded images hain; unhe URL ya public path se replace karein.",
+    );
   }, [gallery]);
+
+  useEffect(() => {
+    const persisted = persistToStorage(HERO_STORAGE_KEY, hero);
+    if (!persisted) {
+      setStorageWarning(
+        "Hero image save nahi ho payi (storage quota full). Chhoti image ya public path use karein.",
+      );
+    }
+  }, [hero]);
+
+  useEffect(() => {
+    const persisted = persistToStorage(ABOUT_STORAGE_KEY, about);
+    if (!persisted) {
+      setStorageWarning(
+        "About image save nahi ho payi (storage quota full). Chhoti image ya public path use karein.",
+      );
+    }
+  }, [about]);
 
   const sortedEvents = useMemo(
     () => [...events].sort((a, b) => a.date.localeCompare(b.date)),
@@ -87,6 +218,13 @@ export default function AdminPage() {
       return;
     }
 
+    if (isInlineDataImage(payload.image) && payload.image.length > GALLERY_MAX_INLINE_LENGTH) {
+      setStorageWarning(
+        "Gallery image bahut badi hai. Chhoti image upload karein ya URL/public path use karein.",
+      );
+      return;
+    }
+
     setGallery((current) => {
       if (editingGalleryId) {
         return current.map((item) => (item.id === editingGalleryId ? payload : item));
@@ -98,20 +236,85 @@ export default function AdminPage() {
     setGalleryForm(emptyGalleryForm);
   };
 
-  const onGalleryFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onGalleryFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") {
-        setGalleryForm((prev) => ({ ...prev, image: result }));
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const optimizedImage = await optimizeImageFile(file, GALLERY_MAX_IMAGE_EDGE, GALLERY_IMAGE_QUALITY);
+      setGalleryForm((prev) => ({ ...prev, image: optimizedImage }));
+      setStorageWarning(null);
+    } catch {
+      setStorageWarning("Image process nahi ho payi. Please another file try karein.");
+    }
+  };
+
+  const onHeroFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const optimizedImage = await optimizeImageFile(file, HERO_MAX_IMAGE_EDGE, HERO_IMAGE_QUALITY);
+      setHeroForm({ image: optimizedImage });
+      setStorageWarning(null);
+    } catch {
+      setStorageWarning("Image process nahi ho payi. Please another file try karein.");
+    }
+  };
+
+  const handleHeroSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const image = heroForm.image.trim();
+    if (!image) {
+      return;
+    }
+
+    if (isInlineDataImage(image) && image.length > HERO_MAX_INLINE_LENGTH) {
+      setStorageWarning(
+        "Hero image bahut badi hai. Chhoti image upload karein ya /images/... public path use karein.",
+      );
+      return;
+    }
+
+    setHero({ image });
+    setStorageWarning(null);
+  };
+
+  const onAboutFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const optimizedImage = await optimizeImageFile(file, ABOUT_MAX_IMAGE_EDGE, ABOUT_IMAGE_QUALITY);
+      setAboutForm({ image: optimizedImage });
+      setStorageWarning(null);
+    } catch {
+      setStorageWarning("Image process nahi ho payi. Please another file try karein.");
+    }
+  };
+
+  const handleAboutSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const image = aboutForm.image.trim();
+    if (!image) {
+      return;
+    }
+
+    if (isInlineDataImage(image) && image.length > ABOUT_MAX_INLINE_LENGTH) {
+      setStorageWarning(
+        "About image bahut badi hai. Chhoti image upload karein ya /images/... public path use karein.",
+      );
+      return;
+    }
+
+    setAbout({ image });
+    setStorageWarning(null);
   };
 
   return (
@@ -159,7 +362,35 @@ export default function AdminPage() {
             >
               Gallery
             </button>
+            <button
+              type="button"
+              onClick={() => setTab("hero")}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                tab === "hero"
+                  ? "bg-[var(--color-saffron)] text-white"
+                  : "border border-black/10 text-[var(--color-muted)] hover:border-[var(--color-saffron)]"
+              }`}
+            >
+              Hero Image
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("about")}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                tab === "about"
+                  ? "bg-[var(--color-saffron)] text-white"
+                  : "border border-black/10 text-[var(--color-muted)] hover:border-[var(--color-saffron)]"
+              }`}
+            >
+              About Image
+            </button>
           </div>
+
+          {storageWarning ? (
+            <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              {storageWarning}
+            </div>
+          ) : null}
         </div>
 
         {tab === "events" ? (
@@ -403,6 +634,144 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {tab === "hero" ? (
+          <section className="mt-6 grid gap-6 lg:grid-cols-2">
+            <form
+              onSubmit={handleHeroSubmit}
+              className="space-y-4 rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5"
+            >
+              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Update Hero Background</h2>
+
+              <div>
+                <label htmlFor="admin-hero-url" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                  Image URL or Public Path
+                </label>
+                <input
+                  id="admin-hero-url"
+                  value={heroForm.image}
+                  onChange={(event) => setHeroForm({ image: event.target.value })}
+                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none ring-[var(--color-saffron)] transition focus:ring-2"
+                  placeholder="/images/hero-tajmahal.jpg"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="admin-hero-file" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                  Or Upload File
+                </label>
+                <input
+                  id="admin-hero-file"
+                  type="file"
+                  accept="image/*"
+                  onChange={onHeroFileChange}
+                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+                />
+              </div>
+
+              {heroForm.image ? (
+                <div className="overflow-hidden rounded-2xl ring-1 ring-black/10">
+                  <img src={heroForm.image} alt="Hero Preview" className="h-44 w-full object-cover" />
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" className="btn-primary">
+                  <ImagePlus size={16} />
+                  Save Hero Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHero(defaultManagedHero);
+                    setHeroForm({ image: defaultManagedHero.image });
+                  }}
+                  className="inline-flex items-center rounded-xl border border-black/15 px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
+                >
+                  Reset Default
+                </button>
+              </div>
+            </form>
+
+            <div className="rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5">
+              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Current Hero Image</h2>
+              <p className="mt-2 text-xs text-[var(--color-muted)] break-all">{getImageSourceLabel(hero.image)}</p>
+              <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-black/10">
+                <img src={hero.image} alt="Current Hero" className="h-64 w-full object-cover" />
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {tab === "about" ? (
+          <section className="mt-6 grid gap-6 lg:grid-cols-2">
+            <form
+              onSubmit={handleAboutSubmit}
+              className="space-y-4 rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5"
+            >
+              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Update About Section Image</h2>
+
+              <div>
+                <label htmlFor="admin-about-url" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                  Image URL or Public Path
+                </label>
+                <input
+                  id="admin-about-url"
+                  value={aboutForm.image}
+                  onChange={(event) => setAboutForm({ image: event.target.value })}
+                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none ring-[var(--color-saffron)] transition focus:ring-2"
+                  placeholder="/images/about-samiti.jpg"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="admin-about-file" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                  Or Upload File
+                </label>
+                <input
+                  id="admin-about-file"
+                  type="file"
+                  accept="image/*"
+                  onChange={onAboutFileChange}
+                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+                />
+              </div>
+
+              {aboutForm.image ? (
+                <div className="overflow-hidden rounded-2xl ring-1 ring-black/10">
+                  <img src={aboutForm.image} alt="About Preview" className="h-44 w-full object-cover" />
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" className="btn-primary">
+                  <ImagePlus size={16} />
+                  Save About Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAbout(defaultManagedAbout);
+                    setAboutForm({ image: defaultManagedAbout.image });
+                  }}
+                  className="inline-flex items-center rounded-xl border border-black/15 px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
+                >
+                  Reset Default
+                </button>
+              </div>
+            </form>
+
+            <div className="rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5">
+              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Current About Image</h2>
+              <p className="mt-2 text-xs text-[var(--color-muted)] break-all">{getImageSourceLabel(about.image)}</p>
+              <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-black/10">
+                <img src={about.image} alt="Current About" className="h-64 w-full object-cover" />
               </div>
             </div>
           </section>

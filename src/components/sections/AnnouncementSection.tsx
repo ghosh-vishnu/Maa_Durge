@@ -17,9 +17,9 @@ export default function AnnouncementSection() {
           {announcements.map((item) => (
             <article
               key={item.title}
-              className="rounded-2xl bg-white p-6 shadow-[0_16px_40px_rgba(217,112,24,0.08)] ring-1 ring-black/5"
+              className="premium-card p-6"
             >
-              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-saffron)]/10 text-[var(--color-saffron)]">
+              <div className="premium-chip mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl">
                 <BellRing size={18} />
               </div>
               <h3 className="font-heading text-xl font-semibold text-[var(--color-charcoal)]">{item.title}</h3>

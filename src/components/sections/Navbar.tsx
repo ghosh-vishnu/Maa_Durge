@@ -12,7 +12,7 @@ export default function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <nav className="glass-card flex items-center justify-between rounded-2xl px-4 py-3 sm:px-6">
+        <nav className="premium-panel flex items-center justify-between px-4 py-3 sm:px-6">
           <a href="#home" className="font-heading text-lg font-semibold tracking-wide text-[var(--color-charcoal)]">
             OJRK Samiti
           </a>
@@ -40,7 +40,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/admin"
-                className="rounded-xl border border-[var(--color-gold)]/40 px-3 py-1.5 text-sm font-semibold text-[var(--color-charcoal)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
+                className="rounded-xl border border-[var(--color-gold)]/40 bg-white/55 px-3 py-1.5 text-sm font-semibold text-[var(--color-charcoal)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
               >
                 Admin
               </Link>
@@ -55,7 +55,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.24, ease: "easeOut" }}
-              className="glass-card mt-2 rounded-2xl px-4 py-3 md:hidden"
+              className="premium-panel mt-2 px-4 py-3 md:hidden"
             >
               <ul className="space-y-2">
                 {navItems.map((item) => (

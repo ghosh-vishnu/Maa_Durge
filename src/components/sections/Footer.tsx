@@ -3,8 +3,15 @@ import { navItems } from "@/data/site";
 
 export default function Footer() {
   return (
-    <footer id="contact" className="bg-[var(--color-charcoal)] py-14 text-white">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+    <footer
+      id="contact"
+      className="relative overflow-hidden bg-[var(--color-charcoal)] py-14 text-white"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 14% 20%, rgba(214,169,84,0.18), transparent 44%), radial-gradient(circle at 86% 80%, rgba(217,112,24,0.18), transparent 48%)",
+      }}
+    >
+      <div className="mx-auto grid max-w-7xl gap-8 rounded-3xl border border-white/10 bg-white/[0.03] px-4 py-8 shadow-[0_18px_44px_rgba(0,0,0,0.25)] backdrop-blur-[2px] sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div>
           <h3 className="font-heading text-xl font-semibold">OJRK Samiti</h3>
           <p className="mt-3 text-sm leading-7 text-white/75">

@@ -1,4 +1,4 @@
-import { eventItems, galleryItems } from "@/data/site";
+import { aboutContent, eventItems, galleryItems, heroContent } from "@/data/site";
 
 export type ManagedEvent = {
   id: string;
@@ -13,8 +13,36 @@ export type ManagedGalleryItem = {
   image: string;
 };
 
+export type ManagedHeroContent = {
+  image: string;
+};
+
+export type ManagedAboutContent = {
+  image: string;
+};
+
 export const EVENTS_STORAGE_KEY = "ojrks-events";
 export const GALLERY_STORAGE_KEY = "ojrks-gallery";
+export const HERO_STORAGE_KEY = "ojrks-hero";
+export const ABOUT_STORAGE_KEY = "ojrks-about";
+const MAX_INLINE_IMAGE_LENGTH = 900_000;
+
+const isUsableImage = (value: unknown): value is string => {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  if (trimmed.startsWith("data:image/") && trimmed.length > MAX_INLINE_IMAGE_LENGTH) {
+    return false;
+  }
+
+  return true;
+};
 
 export const toIsoDate = (value: string) => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -44,6 +72,14 @@ export const defaultManagedGallery: ManagedGalleryItem[] = galleryItems.map((ite
   title: item.title,
   image: item.image,
 }));
+
+export const defaultManagedHero: ManagedHeroContent = {
+  image: heroContent.image,
+};
+
+export const defaultManagedAbout: ManagedAboutContent = {
+  image: aboutContent.image,
+};
 
 export const readEventsFromStorage = () => {
   if (typeof window === "undefined") {
@@ -80,11 +116,58 @@ export const readGalleryFromStorage = () => {
 
     const parsed = JSON.parse(saved) as ManagedGalleryItem[];
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      const sanitized = parsed.filter((item) => item?.title?.trim() && isUsableImage(item?.image));
+      if (sanitized.length > 0) {
+        return sanitized;
+      }
     }
   } catch {
     return defaultManagedGallery;
   }
 
   return defaultManagedGallery;
+};
+
+export const readHeroFromStorage = () => {
+  if (typeof window === "undefined") {
+    return defaultManagedHero;
+  }
+
+  try {
+    const saved = window.localStorage.getItem(HERO_STORAGE_KEY);
+    if (!saved) {
+      return defaultManagedHero;
+    }
+
+    const parsed = JSON.parse(saved) as Partial<ManagedHeroContent>;
+    if (isUsableImage(parsed?.image)) {
+      return { image: parsed.image.trim() };
+    }
+  } catch {
+    return defaultManagedHero;
+  }
+
+  return defaultManagedHero;
+};
+
+export const readAboutFromStorage = () => {
+  if (typeof window === "undefined") {
+    return defaultManagedAbout;
+  }
+
+  try {
+    const saved = window.localStorage.getItem(ABOUT_STORAGE_KEY);
+    if (!saved) {
+      return defaultManagedAbout;
+    }
+
+    const parsed = JSON.parse(saved) as Partial<ManagedAboutContent>;
+    if (isUsableImage(parsed?.image)) {
+      return { image: parsed.image.trim() };
+    }
+  } catch {
+    return defaultManagedAbout;
+  }
+
+  return defaultManagedAbout;
 };
