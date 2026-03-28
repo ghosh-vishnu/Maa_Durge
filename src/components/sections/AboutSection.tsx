@@ -34,7 +34,7 @@ export default function AboutSection() {
 
           <div className="premium-panel overflow-hidden p-2">
             <div
-              className="h-full min-h-[280px] rounded-[calc(var(--radius-panel)-0.35rem)] bg-cover bg-center"
+              className="h-full min-h-[220px] rounded-[calc(var(--radius-panel)-0.35rem)] bg-cover bg-center sm:min-h-[280px]"
               style={{
                 backgroundImage:
                   `linear-gradient(130deg, rgba(255, 248, 236, 0.12), rgba(186, 135, 76, 0.24)), url('${about.image}')`,

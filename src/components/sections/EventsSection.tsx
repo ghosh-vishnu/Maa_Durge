@@ -90,16 +90,16 @@ export default function EventsSection() {
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-[var(--color-muted)]">
+            <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-semibold text-[var(--color-muted)] sm:gap-2 sm:text-xs">
               {weekdayLabels.map((label) => (
                 <span key={label}>{label}</span>
               ))}
             </div>
 
-            <div className="mt-3 grid grid-cols-7 gap-2">
+            <div className="mt-3 grid grid-cols-7 gap-1.5 sm:gap-2">
               {calendarCells.map((day, idx) => {
                 if (!day) {
-                  return <div key={`empty-${idx}`} className="h-16 rounded-xl bg-transparent" />;
+                  return <div key={`empty-${idx}`} className="aspect-square rounded-lg bg-transparent sm:rounded-xl" />;
                 }
 
                 const date = `${monthKey}-${`${day}`.padStart(2, "0")}`;
@@ -108,16 +108,16 @@ export default function EventsSection() {
                 return (
                   <div
                     key={date}
-                    className={`h-16 rounded-xl border p-2 text-left text-sm ${
+                    className={`aspect-square rounded-lg border p-1.5 text-left text-xs sm:rounded-xl sm:p-2 sm:text-sm ${
                       eventCount > 0
                         ? "border-[var(--color-saffron)]/40 bg-[var(--color-saffron)]/12"
                         : "border-black/10 bg-white/85"
                     }`}
                   >
-                    <div className="font-semibold text-[var(--color-charcoal)]">{day}</div>
+                    <div className="font-semibold leading-none text-[var(--color-charcoal)]">{day}</div>
                     {eventCount > 0 ? (
-                      <div className="mt-1 inline-flex rounded-full bg-[var(--color-saffron)] px-2 py-0.5 text-[10px] font-bold text-white">
-                        {eventCount} event
+                      <div className="mt-1 inline-flex rounded-full bg-[var(--color-saffron)] px-1.5 py-0.5 text-[9px] font-bold leading-none text-white sm:px-2 sm:text-[10px]">
+                        {eventCount} evt
                       </div>
                     ) : null}
                   </div>

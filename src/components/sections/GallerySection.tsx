@@ -26,14 +26,14 @@ export default function GallerySection() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: index * 0.08 }}
-              className="group relative overflow-hidden rounded-3xl"
+              className="group relative overflow-hidden rounded-2xl sm:rounded-3xl"
             >
               <img
                 src={item.image}
                 alt={item.title}
-                className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-110 sm:h-72"
               />
-              <figcaption className="absolute inset-x-4 bottom-4 rounded-xl bg-black/45 px-4 py-3 text-sm font-semibold text-white backdrop-blur-sm">
+              <figcaption className="absolute inset-x-3 bottom-3 rounded-xl bg-black/55 px-3 py-2 text-xs font-semibold leading-tight text-white backdrop-blur-sm sm:inset-x-4 sm:bottom-4 sm:px-4 sm:py-3 sm:text-sm">
                 {item.title}
               </figcaption>
             </motion.figure>
