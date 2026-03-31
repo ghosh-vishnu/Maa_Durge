@@ -8,7 +8,11 @@ export const navItems = [
 ];
 
 export const heroContent = {
-  image: "/images/hero-tajmahal.jpg",
+  images: [
+    "/images/hero-tajmahal.jpg",
+    "/images/IMG-20211012-WA0007.jpg",
+    "/images/IMG-20241011-WA0002.jpg",
+  ],
 };
 
 export const aboutContent = {

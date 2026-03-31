@@ -14,7 +14,7 @@ export type ManagedGalleryItem = {
 };
 
 export type ManagedHeroContent = {
-  image: string;
+  images: string[];
 };
 
 export type ManagedAboutContent = {
@@ -25,6 +25,7 @@ export const EVENTS_STORAGE_KEY = "ojrks-events";
 export const GALLERY_STORAGE_KEY = "ojrks-gallery";
 export const HERO_STORAGE_KEY = "ojrks-hero";
 export const ABOUT_STORAGE_KEY = "ojrks-about";
+export const HERO_IMAGE_SLOTS = 3;
 const MAX_INLINE_IMAGE_LENGTH = 900_000;
 
 const isUsableImage = (value: unknown): value is string => {
@@ -74,7 +75,7 @@ export const defaultManagedGallery: ManagedGalleryItem[] = galleryItems.map((ite
 }));
 
 export const defaultManagedHero: ManagedHeroContent = {
-  image: heroContent.image,
+  images: heroContent.images.slice(0, HERO_IMAGE_SLOTS),
 };
 
 export const defaultManagedAbout: ManagedAboutContent = {
@@ -129,6 +130,26 @@ export const readGalleryFromStorage = () => {
 };
 
 export const readHeroFromStorage = () => {
+  const normalizeHeroImages = (value: unknown): string[] => {
+    const fallback = defaultManagedHero.images;
+    let candidates: string[] = [];
+
+    if (Array.isArray(value)) {
+      candidates = value.filter(isUsableImage).map((image) => image.trim());
+    } else if (typeof value === "object" && value !== null) {
+      const parsed = value as { images?: unknown; image?: unknown };
+      if (Array.isArray(parsed.images)) {
+        candidates = parsed.images.filter(isUsableImage).map((image) => image.trim());
+      } else if (isUsableImage(parsed.image)) {
+        candidates = [parsed.image.trim()];
+      }
+    }
+
+    return Array.from({ length: HERO_IMAGE_SLOTS }, (_, index) => {
+      return candidates[index] ?? fallback[index] ?? fallback[0];
+    });
+  };
+
   if (typeof window === "undefined") {
     return defaultManagedHero;
   }
@@ -139,10 +160,8 @@ export const readHeroFromStorage = () => {
       return defaultManagedHero;
     }
 
-    const parsed = JSON.parse(saved) as Partial<ManagedHeroContent>;
-    if (isUsableImage(parsed?.image)) {
-      return { image: parsed.image.trim() };
-    }
+    const parsed = JSON.parse(saved) as Partial<ManagedHeroContent> & { image?: unknown };
+    return { images: normalizeHeroImages(parsed) };
   } catch {
     return defaultManagedHero;
   }

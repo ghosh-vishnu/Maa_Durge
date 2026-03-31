@@ -12,6 +12,7 @@ import {
   EVENTS_STORAGE_KEY,
   GALLERY_STORAGE_KEY,
   HERO_STORAGE_KEY,
+  HERO_IMAGE_SLOTS,
   ManagedAboutContent,
   ManagedEvent,
   ManagedGalleryItem,
@@ -128,7 +129,7 @@ export default function AdminPage() {
 
   const [editingGalleryId, setEditingGalleryId] = useState<string | null>(null);
   const [galleryForm, setGalleryForm] = useState(emptyGalleryForm);
-  const [heroForm, setHeroForm] = useState(() => ({ image: readHeroFromStorage().image }));
+  const [heroForm, setHeroForm] = useState(() => ({ images: [...readHeroFromStorage().images] }));
   const [aboutForm, setAboutForm] = useState(() => ({ image: readAboutFromStorage().image }));
 
   const persistToStorage = (key: string, payload: unknown) => {
@@ -275,7 +276,7 @@ export default function AdminPage() {
     }
   };
 
-  const onHeroFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const onHeroFileChange = async (index: number, event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       return;
@@ -292,7 +293,9 @@ export default function AdminPage() {
         setStorageWarning("Hero image abhi bhi badi hai. Please smaller image file upload karein.");
         return;
       }
-      setHeroForm({ image: optimizedImage });
+      setHeroForm((prev) => ({
+        images: prev.images.map((value, imageIndex) => (imageIndex === index ? optimizedImage : value)),
+      }));
       setStorageWarning(null);
     } catch {
       setStorageWarning("Image process nahi ho payi. Please another file try karein.");
@@ -301,19 +304,22 @@ export default function AdminPage() {
 
   const handleHeroSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const image = heroForm.image.trim();
-    if (!image) {
+    const images = heroForm.images.map((image) => image.trim());
+    if (images.some((image) => !image)) {
       return;
     }
 
-    if (isInlineDataImage(image) && image.length > HERO_MAX_INLINE_LENGTH) {
+    const hasOversizedInlineImage = images.some(
+      (image) => isInlineDataImage(image) && image.length > HERO_MAX_INLINE_LENGTH,
+    );
+    if (hasOversizedInlineImage) {
       setStorageWarning(
-        "Hero image bahut badi hai. Chhoti image upload karein ya /images/... public path use karein.",
+        "Hero slider image bahut badi hai. Chhoti image upload karein ya /images/... public path use karein.",
       );
       return;
     }
 
-    setHero({ image });
+    setHero({ images });
     setStorageWarning(null);
   };
 
@@ -687,51 +693,64 @@ export default function AdminPage() {
               onSubmit={handleHeroSubmit}
               className="space-y-4 rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5"
             >
-              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Update Hero Background</h2>
+              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Update Hero Slider (3 Images)</h2>
 
-              <div>
-                <label htmlFor="admin-hero-url" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-                  Image URL or Public Path
-                </label>
-                <input
-                  id="admin-hero-url"
-                  value={heroForm.image}
-                  onChange={(event) => setHeroForm({ image: event.target.value })}
-                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none ring-[var(--color-saffron)] transition focus:ring-2"
-                  placeholder="/images/hero-tajmahal.jpg"
-                  required
-                />
+              <div className="space-y-5">
+                {heroForm.images.map((image, index) => (
+                  <div key={`hero-slot-${index}`} className="space-y-3 rounded-2xl border border-black/10 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-saffron)]">
+                      Slide {index + 1}
+                    </p>
+                    <div>
+                      <label htmlFor={`admin-hero-url-${index}`} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                        Image URL or Public Path
+                      </label>
+                      <input
+                        id={`admin-hero-url-${index}`}
+                        value={image}
+                        onChange={(event) =>
+                          setHeroForm((prev) => ({
+                            images: prev.images.map((value, imageIndex) =>
+                              imageIndex === index ? event.target.value : value,
+                            ),
+                          }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none ring-[var(--color-saffron)] transition focus:ring-2"
+                        placeholder={`/images/hero-slide-${index + 1}.jpg`}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`admin-hero-file-${index}`} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                        Or Upload File
+                      </label>
+                      <input
+                        id={`admin-hero-file-${index}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => onHeroFileChange(index, event)}
+                        className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+                      />
+                    </div>
+                    {image ? (
+                      <div className="overflow-hidden rounded-2xl ring-1 ring-black/10">
+                        <img src={image} alt={`Hero Preview ${index + 1}`} className="h-36 w-full object-cover" />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
               </div>
-
-              <div>
-                <label htmlFor="admin-hero-file" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-                  Or Upload File
-                </label>
-                <input
-                  id="admin-hero-file"
-                  type="file"
-                  accept="image/*"
-                  onChange={onHeroFileChange}
-                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
-                />
-              </div>
-
-              {heroForm.image ? (
-                <div className="overflow-hidden rounded-2xl ring-1 ring-black/10">
-                  <img src={heroForm.image} alt="Hero Preview" className="h-44 w-full object-cover" />
-                </div>
-              ) : null}
 
               <div className="flex flex-wrap gap-2">
                 <button type="submit" className="btn-primary">
                   <ImagePlus size={16} />
-                  Save Hero Image
+                  Save Hero Slider
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setHero(defaultManagedHero);
-                    setHeroForm({ image: defaultManagedHero.image });
+                    setHeroForm({ images: [...defaultManagedHero.images] });
                   }}
                   className="inline-flex items-center rounded-xl border border-black/15 px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
                 >
@@ -741,10 +760,16 @@ export default function AdminPage() {
             </form>
 
             <div className="rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(37,32,27,0.07)] ring-1 ring-black/5">
-              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Current Hero Image</h2>
-              <p className="mt-2 text-xs text-[var(--color-muted)] break-all">{getImageSourceLabel(hero.image)}</p>
-              <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-black/10">
-                <img src={hero.image} alt="Current Hero" className="h-64 w-full object-cover" />
+              <h2 className="font-heading text-2xl font-semibold text-[var(--color-charcoal)]">Current Hero Slider</h2>
+              <div className="mt-4 space-y-3">
+                {hero.images.slice(0, HERO_IMAGE_SLOTS).map((image, index) => (
+                  <div key={`hero-current-${index}`} className="overflow-hidden rounded-2xl ring-1 ring-black/10">
+                    <p className="px-3 pt-2 text-xs text-[var(--color-muted)] break-all">
+                      Slide {index + 1}: {getImageSourceLabel(image)}
+                    </p>
+                    <img src={image} alt={`Current Hero ${index + 1}`} className="h-44 w-full object-cover" />
+                  </div>
+                ))}
               </div>
             </div>
           </section>
