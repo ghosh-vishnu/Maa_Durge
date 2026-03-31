@@ -56,7 +56,12 @@ const getImageSourceLabel = (value: string) => {
   return value;
 };
 
-const optimizeImageFile = (file: File, maxEdge: number, quality: number) =>
+const optimizeImageFile = (
+  file: File,
+  maxEdge: number,
+  quality: number,
+  maxInlineLength?: number,
+) =>
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("Unable to read file"));
@@ -70,30 +75,40 @@ const optimizeImageFile = (file: File, maxEdge: number, quality: number) =>
       const image = new Image();
       image.onerror = () => reject(new Error("Unable to process image"));
       image.onload = () => {
-        const largestEdge = Math.max(image.width, image.height);
-        const scale = largestEdge > maxEdge ? maxEdge / largestEdge : 1;
-        const width = Math.max(1, Math.round(image.width * scale));
-        const height = Math.max(1, Math.round(image.height * scale));
-
         const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
         const context = canvas.getContext("2d");
         if (!context) {
           reject(new Error("Canvas is not available"));
           return;
         }
+        let bestData = src;
+        for (let attempt = 0; attempt < 7; attempt += 1) {
+          const shrinkFactor = Math.max(0.45, 1 - attempt * 0.11);
+          const edgeLimit = Math.max(600, Math.round(maxEdge * shrinkFactor));
+          const qualityLevel = Math.max(0.5, quality - attempt * 0.08);
 
-        context.drawImage(image, 0, 0, width, height);
+          const largestEdge = Math.max(image.width, image.height);
+          const scale = largestEdge > edgeLimit ? edgeLimit / largestEdge : 1;
+          const width = Math.max(1, Math.round(image.width * scale));
+          const height = Math.max(1, Math.round(image.height * scale));
 
-        const webpData = canvas.toDataURL("image/webp", quality);
-        if (webpData.length > 0) {
-          resolve(webpData);
-          return;
+          canvas.width = width;
+          canvas.height = height;
+          context.clearRect(0, 0, width, height);
+          context.drawImage(image, 0, 0, width, height);
+
+          const webpData = canvas.toDataURL("image/webp", qualityLevel);
+          if (webpData.length > 0) {
+            bestData = webpData;
+          }
+
+          if (!maxInlineLength || bestData.length <= maxInlineLength) {
+            resolve(bestData);
+            return;
+          }
         }
 
-        resolve(src);
+        resolve(bestData);
       };
       image.src = src;
     };
@@ -243,7 +258,16 @@ export default function AdminPage() {
     }
 
     try {
-      const optimizedImage = await optimizeImageFile(file, GALLERY_MAX_IMAGE_EDGE, GALLERY_IMAGE_QUALITY);
+      const optimizedImage = await optimizeImageFile(
+        file,
+        GALLERY_MAX_IMAGE_EDGE,
+        GALLERY_IMAGE_QUALITY,
+        GALLERY_MAX_INLINE_LENGTH,
+      );
+      if (optimizedImage.length > GALLERY_MAX_INLINE_LENGTH) {
+        setStorageWarning("Image abhi bhi badi hai. Please smaller image file upload karein.");
+        return;
+      }
       setGalleryForm((prev) => ({ ...prev, image: optimizedImage }));
       setStorageWarning(null);
     } catch {
@@ -258,7 +282,16 @@ export default function AdminPage() {
     }
 
     try {
-      const optimizedImage = await optimizeImageFile(file, HERO_MAX_IMAGE_EDGE, HERO_IMAGE_QUALITY);
+      const optimizedImage = await optimizeImageFile(
+        file,
+        HERO_MAX_IMAGE_EDGE,
+        HERO_IMAGE_QUALITY,
+        HERO_MAX_INLINE_LENGTH,
+      );
+      if (optimizedImage.length > HERO_MAX_INLINE_LENGTH) {
+        setStorageWarning("Hero image abhi bhi badi hai. Please smaller image file upload karein.");
+        return;
+      }
       setHeroForm({ image: optimizedImage });
       setStorageWarning(null);
     } catch {
@@ -291,7 +324,16 @@ export default function AdminPage() {
     }
 
     try {
-      const optimizedImage = await optimizeImageFile(file, ABOUT_MAX_IMAGE_EDGE, ABOUT_IMAGE_QUALITY);
+      const optimizedImage = await optimizeImageFile(
+        file,
+        ABOUT_MAX_IMAGE_EDGE,
+        ABOUT_IMAGE_QUALITY,
+        ABOUT_MAX_INLINE_LENGTH,
+      );
+      if (optimizedImage.length > ABOUT_MAX_INLINE_LENGTH) {
+        setStorageWarning("About image abhi bhi badi hai. Please smaller image file upload karein.");
+        return;
+      }
       setAboutForm({ image: optimizedImage });
       setStorageWarning(null);
     } catch {

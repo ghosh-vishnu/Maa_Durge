@@ -12,15 +12,15 @@ export default function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <nav className="premium-panel flex items-center justify-between px-4 py-3 sm:px-6">
-          <a href="#home" className="font-heading text-lg font-semibold tracking-wide text-[var(--color-charcoal)]">
+        <nav className="nav-premium flex items-center justify-between px-1 py-2 sm:px-2">
+          <a href="#home" className="nav-brand font-heading text-lg font-semibold tracking-[0.06em] text-white sm:text-xl">
             OJRK Samiti
           </a>
 
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-[var(--color-charcoal)] md:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/35 bg-white/10 text-white md:hidden"
             aria-label="Toggle menu"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
@@ -31,7 +31,7 @@ export default function Navbar() {
               <li key={item.href}>
                 <a
                   href={item.href}
-                  className="text-sm font-medium text-[var(--color-muted)] transition-colors duration-200 hover:text-[var(--color-saffron)]"
+                  className="nav-link text-sm font-semibold text-white/85 transition-colors duration-200 hover:text-white"
                 >
                   {item.label}
                 </a>
@@ -40,7 +40,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/admin"
-                className="rounded-xl border border-[var(--color-gold)]/40 bg-white/55 px-3 py-1.5 text-sm font-semibold text-[var(--color-charcoal)] transition hover:border-[var(--color-saffron)] hover:text-[var(--color-saffron)]"
+                className="nav-link text-sm font-semibold text-amber-100 transition-colors hover:text-white"
               >
                 Admin
               </Link>
@@ -55,7 +55,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.24, ease: "easeOut" }}
-              className="premium-panel mt-2 px-4 py-3 md:hidden"
+              className="nav-mobile mt-2 px-4 py-3 md:hidden"
             >
               <ul className="space-y-2">
                 {navItems.map((item) => (
@@ -63,7 +63,7 @@ export default function Navbar() {
                     <a
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className="block rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-white/70 hover:text-[var(--color-saffron)]"
+                      className="block rounded-lg px-3 py-2 text-sm font-medium text-white/88 transition-colors hover:bg-white/10 hover:text-white"
                     >
                       {item.label}
                     </a>
@@ -73,7 +73,7 @@ export default function Navbar() {
                   <Link
                     href="/admin"
                     onClick={() => setOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm font-semibold text-[var(--color-charcoal)] transition-colors hover:bg-white/70 hover:text-[var(--color-saffron)]"
+                    className="block rounded-lg px-3 py-2 text-sm font-semibold text-amber-100 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     Admin Dashboard
                   </Link>
