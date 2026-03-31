@@ -1,7 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import AboutSection from "@/components/sections/AboutSection";
 import AnnouncementSection from "@/components/sections/AnnouncementSection";
 import EventsSection from "@/components/sections/EventsSection";
@@ -9,21 +8,11 @@ import Footer from "@/components/sections/Footer";
 import GallerySection from "@/components/sections/GallerySection";
 import HeroSection from "../sections/HeroSection";
 import Navbar from "@/components/sections/Navbar";
-import Loader from "@/components/site/Loader";
 import UpcomingEventsPopup from "@/components/site/UpcomingEventsPopup";
 
 export default function HomePage() {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 1200);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   return (
     <>
-      <AnimatePresence>{loading ? <Loader /> : null}</AnimatePresence>
-
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -44,6 +33,7 @@ export default function HomePage() {
           <EventsSection />
           <GallerySection />
           <AnnouncementSection />
+          <div id="contact" className="contact-anchor" aria-hidden="true" />
           <Footer />
         </div>
       </motion.main>

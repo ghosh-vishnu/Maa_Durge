@@ -1,52 +1,57 @@
 "use client";
 
-import { Menu, Sparkles, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { navItems } from "@/data/site";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const theme = pathname === "/" ? "dark" : "light";
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
-      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <nav className="nav-premium nav-shell flex items-center justify-between gap-3 px-3 py-2 sm:px-4">
-          <span className="nav-top-glow" aria-hidden="true" />
+    <header className={`z-50 ${theme === "light" ? "nav-theme-light" : "nav-theme-dark"}`}>
+      <Link
+        href="/"
+        className="fixed left-2 top-1 z-[70] rounded-xl border border-white/35 bg-black/35 p-1.5 backdrop-blur-md sm:left-4 sm:top-2"
+        aria-label="Go to home"
+      >
+        <Image
+          src="/images/mandir-logo.jpg"
+          alt="OJRK Mandir Logo"
+          width={120}
+          height={120}
+          priority
+          className="h-12 w-auto rounded-lg object-contain sm:h-14"
+        />
+      </Link>
 
-          <a href="#home" className="nav-brand-wrap">
-            <span className="nav-brand-mark" aria-hidden="true">
-              <Sparkles size={13} strokeWidth={2.4} />
-            </span>
-            <span className="flex flex-col leading-tight">
-              <span className="nav-brand font-heading text-base font-semibold tracking-[0.05em] text-white sm:text-lg">
-                OJRK Samiti
-              </span>
-              <span className="hidden text-[10px] font-semibold tracking-[0.2em] text-amber-100/80 sm:block">
-                TRUST - SEVA - SANSKAR
-              </span>
-            </span>
-          </a>
-
+      <div className="fixed right-2 top-2 z-[65] w-[min(calc(100vw-5rem),56rem)] sm:right-4 sm:top-3 sm:w-[min(calc(100vw-8rem),56rem)] lg:w-auto">
+        <nav className="flex items-center justify-end">
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
-            className="nav-toggle inline-flex h-10 w-10 items-center justify-center rounded-xl text-white md:hidden"
+            className="nav-toggle inline-flex h-10 w-10 items-center justify-center rounded-xl xl:hidden"
             aria-label="Toggle menu"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
 
-          <ul className="nav-links-shell hidden items-center gap-1 md:flex">
+          <ul className="nav-links-shell hidden items-center gap-1 xl:flex">
             {navItems.map((item) => (
               <li key={item.href}>
-                <a
+                <Link
                   href={item.href}
-                  className="nav-link nav-link-pill text-sm font-semibold text-white/88 transition-colors duration-200 hover:text-white"
+                  className={`nav-link nav-link-pill text-sm font-semibold transition-colors duration-200 ${
+                    pathname === item.href ? "nav-link-active" : ""
+                  }`}
                 >
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
             <li>
@@ -67,18 +72,20 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.24, ease: "easeOut" }}
-              className="nav-mobile mt-2 px-3 py-3 md:hidden"
+              className="nav-mobile mt-2 ml-auto w-[min(calc(100vw-1rem),22rem)] px-3 py-3 xl:hidden"
             >
               <ul className="space-y-1.5">
                 {navItems.map((item) => (
                   <li key={item.href}>
-                    <a
+                    <Link
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className="nav-mobile-link block rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 transition-colors hover:text-white"
+                      className={`nav-mobile-link block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        pathname === item.href ? "nav-mobile-link-active" : ""
+                      }`}
                     >
                       {item.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
                 <li>

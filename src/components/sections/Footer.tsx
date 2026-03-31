@@ -4,7 +4,6 @@ import { navItems } from "@/data/site";
 export default function Footer() {
   return (
     <footer
-      id="contact"
       className="relative overflow-hidden bg-[var(--color-charcoal)] py-14 text-white"
       style={{
         backgroundImage:

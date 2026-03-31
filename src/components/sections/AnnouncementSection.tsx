@@ -5,7 +5,7 @@ import { announcements } from "@/data/site";
 
 export default function AnnouncementSection() {
   return (
-    <AnimatedSection className="py-20 bg-[var(--color-cream)]/55 sm:py-24">
+    <AnimatedSection id="announcements" className="py-20 bg-[var(--color-cream)]/55 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionTitle
           eyebrow="Announcements"
